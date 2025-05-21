@@ -1,6 +1,3 @@
-// Debugging setup
-console.log("Initializing AR...");
-
 // Scene setup
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -9,84 +6,95 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.xr.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-// Add temporary axis helper (debugging)
-scene.add(new THREE.AxesHelper(1));
+// AR variables
+let model, hitTestSource = null;
+let modelPlaced = false;
+const controller = renderer.xr.getController(0);
+scene.add(controller);
 
-// Model loading
+// Load model
 const loader = new THREE.GLTFLoader();
-let modelLoaded = false;
-
-console.log("Loading 3D model...");
 loader.load(
     'building.glb',
     (gltf) => {
-        console.log("Model loaded successfully!");
-        const model = gltf.scene;
+        model = gltf.scene;
         model.scale.set(0.5, 0.5, 0.5);
+        model.visible = false; // Hide until placed
         scene.add(model);
-        modelLoaded = true;
-        
-        // Position model in front of camera
-        model.position.set(0, 0, -2);
     },
     undefined,
-    (error) => {
-        console.error("Model failed to load:", error);
-        alert("Error loading 3D model. Check console for details.");
-    }
+    (error) => console.error("Model error:", error)
 );
 
-// AR Button handler
-document.getElementById('ar-button').addEventListener('click', async () => {
-    console.log("AR button clicked");
-    
+// AR session start
+async function startAR() {
     if (!navigator.xr) {
-        alert("WebXR not available. Try Chrome on Android or Safari on iOS 15+ with WebXR enabled.");
+        alert("WebXR unavailable. Try Chrome on Android or Safari iOS 15+.");
         return;
     }
 
-    try {
-        console.log("Requesting AR session...");
-        const session = await navigator.xr.requestSession('immersive-ar');
-        console.log("AR session started");
-        
-        renderer.xr.setSession(session);
-        document.getElementById('ar-button').textContent = "AR Active";
-        document.getElementById('ar-button').style.background = "#4CAF50";
-        
-        // Add reticle for placement
-        const reticle = new THREE.Mesh(
-            new THREE.RingGeometry(0.1, 0.2, 32).rotateX(-Math.PI / 2),
-            new THREE.MeshBasicMaterial({ color: 0xffffff })
-        );
-        reticle.matrixAutoUpdate = false;
-        reticle.visible = false;
-        scene.add(reticle);
-        
-        // Handle controller input
-        session.addEventListener('select', () => {
-            if (modelLoaded && reticle.visible) {
-                const modelClone = scene.children.find(child => child.isGroup).clone();
-                modelClone.position.setFromMatrixPosition(reticle.matrix);
-                scene.add(modelClone);
-            }
-        });
+    const session = await navigator.xr.requestSession('immersive-ar');
+    session.addEventListener('end', resetAR);
+    renderer.xr.setSession(session);
+    
+    // Setup hit testing (surface detection)
+    const space = await session.requestReferenceSpace('viewer');
+    hitTestSource = await session.requestHitTestSource({ space });
+}
 
-    } catch (error) {
-        console.error("AR session failed:", error);
-        alert("Couldn't start AR: " + error.message);
-    }
-});
+// Place model function
+function placeModel(position) {
+    if (!model || modelPlaced) return;
+    
+    model.position.copy(position);
+    model.visible = true;
+    modelPlaced = true;
+    
+    document.getElementById('ar-button').classList.add('placed');
+    document.getElementById('ar-button').textContent = "Model Placed";
+    document.getElementById('instructions').textContent = "Move around to view";
+}
 
-// Animation loop
+// Main AR loop
 function animate() {
-    renderer.setAnimationLoop(() => {
+    renderer.setAnimationLoop((timestamp, frame) => {
+        if (!frame || !model) return;
+        
+        // Surface detection
+        if (!modelPlaced && hitTestSource) {
+            const hitTestResults = frame.getHitTestResults(hitTestSource);
+            if (hitTestResults.length > 0) {
+                const pose = hitTestResults[0].getPose(renderer.xr.getReferenceSpace());
+                controller.position.set(0, 0, -0.3); // Visual indicator
+                if (modelPlaced === false) {
+                    placeModel(pose.transform.position);
+                }
+            }
+        }
+        
         renderer.render(scene, camera);
     });
 }
+
+// Reset function
+function resetAR() {
+    modelPlaced = false;
+    if (model) model.visible = false;
+    document.getElementById('ar-button').classList.remove('placed');
+    document.getElementById('ar-button').textContent = "Place Model";
+    document.getElementById('instructions').textContent = "Move your phone to detect surfaces";
+}
+
+// Button handler
+document.getElementById('ar-button').addEventListener('click', () => {
+    if (modelPlaced) return;
+    startAR();
+});
+
+// Start animation
 animate();
 
-// Handle window resize
+// Handle resize
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
