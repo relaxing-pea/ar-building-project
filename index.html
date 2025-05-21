@@ -3,50 +3,47 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Simple AR Model Viewer</title>
-    <!-- Three.js -->
+    <title>Place Model in AR</title>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
-    <!-- AR.js (fallback) -->
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
         body { margin: 0; overflow: hidden; }
         #ar-button {
             position: absolute;
-            top: 16px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            padding: 8px 16px;
-            background: #6200ea;
+            padding: 12px 24px;
+            background: #4285f4;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 30px;
             font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             cursor: pointer;
         }
-        #ar-fallback {
-            display: none;
+        #ar-button.placed {
+            background: #34a853;
+            content: "Model Placed";
+        }
+        #instructions {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            top: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
-    <!-- WebXR (Main AR) -->
-    <button id="ar-button">Start AR</button>
+    <div id="instructions">Move your phone to detect surfaces</div>
+    <button id="ar-button">Place Model</button>
     <script src="app.js"></script>
-
-    <!-- AR.js Fallback (hidden by default) -->
-    <div id="ar-fallback">
-        <a-scene embedded arjs="trackingMethod: best;">
-            <a-marker preset="hiro">
-                <a-entity gltf-model="building.glb" scale="0.5 0.5 0.5"></a-entity>
-            </a-marker>
-            <a-entity camera></a-entity>
-        </a-scene>
-    </div>
 </body>
 </html>
