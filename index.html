@@ -3,16 +3,20 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Historical Building AR</title>
+    <title>Simple AR Model Viewer</title>
+    <!-- Three.js -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/renderers/CSS3DRenderer.js"></script>
+    <!-- AR.js (fallback) -->
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
         body { margin: 0; overflow: hidden; }
         #ar-button {
             position: absolute;
             top: 16px;
-            left: 16px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
             padding: 8px 16px;
             background: #6200ea;
@@ -22,10 +26,27 @@
             font-size: 16px;
             cursor: pointer;
         }
+        #ar-fallback {
+            display: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body>
+    <!-- WebXR (Main AR) -->
     <button id="ar-button">Start AR</button>
     <script src="app.js"></script>
+
+    <!-- AR.js Fallback (hidden by default) -->
+    <div id="ar-fallback">
+        <a-scene embedded arjs="trackingMethod: best;">
+            <a-marker preset="hiro">
+                <a-entity gltf-model="building.glb" scale="0.5 0.5 0.5"></a-entity>
+            </a-marker>
+            <a-entity camera></a-entity>
+        </a-scene>
+    </div>
 </body>
 </html>
