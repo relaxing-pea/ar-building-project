@@ -3,9 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Place Model in AR</title>
+    <title>AR Quick Test</title>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         body { margin: 0; overflow: hidden; }
         #ar-button {
@@ -20,15 +19,9 @@
             border: none;
             border-radius: 30px;
             font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             cursor: pointer;
         }
-        #ar-button.placed {
-            background: #34a853;
-            content: "Model Placed";
-        }
-        #instructions {
+        #status {
             position: absolute;
             top: 20px;
             left: 0;
@@ -37,13 +30,12 @@
             color: white;
             background: rgba(0,0,0,0.5);
             padding: 10px;
-            z-index: 1000;
         }
     </style>
 </head>
 <body>
-    <div id="instructions">Move your phone to detect surfaces</div>
-    <button id="ar-button">Place Model</button>
+    <div id="status">Ready</div>
+    <button id="ar-button">Start AR</button>
     <script src="app.js"></script>
 </body>
 </html>
